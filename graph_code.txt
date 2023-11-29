@@ -1,0 +1,15 @@
+import pandas as pd
+import plotly.express as px
+import plotly.io as pio
+import json
+
+def plot_graph(data, save_filename):
+    fig = px.bar(data, x='project_name', y='failed_tests', title='Distribution of Failed Tests by Project')
+    fig.update_layout(xaxis_title='Project Name', yaxis_title='Number of Failed Tests')
+    fig.show()
+    fig.write_image('results/' + save_filename + '.png')
+    fig.write_json('results/' + save_filename + '.json')
+
+# Sample usage
+# data = pd.read_csv('sample_data.csv')
+# plot_graph(data, 'failed_tests_by_project')
