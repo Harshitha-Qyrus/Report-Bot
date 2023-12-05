@@ -17,7 +17,6 @@ class GenerateReportList:
             "content": GENERATE_INSIGHT_LIST_PROMPT.user_prompt.format(user_description=user_description, db_schema=db_schema)
         }]
         
-        print("\033[47m Message in Generate insight layout \033[0m", messages)
 
         functions = [{
             "name": "showListReport",
@@ -27,7 +26,6 @@ class GenerateReportList:
             "parameters": GenerateReportInsightListsSchema.schema()
         }]
         
-        print("\033[47m functions in Generate insight layout \033[0m", functions)
 
         _, args = self.function_call(messages=messages, model_name="gpt-4-32k", functions=functions)
         print("\033[47m ARGSSSSS IN REPORT \033[0m", args)

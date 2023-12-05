@@ -28,8 +28,6 @@ class Completion:
                 "messages": messages
             }
             
-            print("\033[95m Messages in completion:.\033[0m",messages)
-            print("\033[95m ags in completion.\033[0m",ags)
 
             if OPENAI_CONFIG.API_TYPE == "azure":
                 ags["engine"] = OPENAI_CONFIG.MODELS[model_name]
@@ -40,7 +38,6 @@ class Completion:
                 **ags
                 )
             
-            print("\033[95mresponse in completion:\033[0m",response)
 
             choices = response.get("choices")[0]
             content = choices.get("message").get("content")
@@ -103,7 +100,7 @@ class FunctionCall:
             }
             
             print("\033[95m messages in function call:\033[0m",messages)
-            print("\033[95m ags in function call \n \033[0m",ags)
+    
             if OPENAI_CONFIG.API_TYPE == "azure":
                 ags["engine"] =OPENAI_CONFIG.MODELS[model_name]
             else:
@@ -113,7 +110,7 @@ class FunctionCall:
                 **ags
                 
             )
-            print("\033[95m Response in function call\n: \033[0m ", response)
+            # print("\033[95m Response in function call\n: \033[0m ", response)
             # with open("func_call_resp.json", 'w') as fp:
             #     json.dump(response, fp)
 
@@ -143,7 +140,7 @@ class FunctionCall:
                 return function_name, function_arguments
             else:
                 function = response.choices[0]["message"]["content"]
-                print("\033[95m Function in response if not none cond :\n \033[0m",function)
+                # print("\033[95m Function in response if not none cond :\n \033[0m",function)
                 try:
                     function_resp = json.loads(function, strict=False)
                 except:

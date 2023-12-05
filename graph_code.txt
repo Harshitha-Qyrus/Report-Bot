@@ -1,15 +1,30 @@
 import pandas as pd
-import plotly.express as px
+import plotly.graph_objects as go
 import plotly.io as pio
-import json
+import os
 
 def plot_graph(data, save_filename):
-    fig = px.bar(data, x='project_name', y='failed_tests', title='Distribution of Failed Tests by Project')
-    fig.update_layout(xaxis_title='Project Name', yaxis_title='Number of Failed Tests')
-    fig.show()
-    fig.write_image('results/' + save_filename + '.png')
-    fig.write_json('results/' + save_filename + '.json')
+    # Create a bar chart
+    fig = go.Figure(data=[
+        go.Bar(name='Test Suites', x=data['project_name'], y=data['test_suite_count'])
+    ])
 
-# Sample usage
-# data = pd.read_csv('sample_data.csv')
-# plot_graph(data, 'failed_tests_by_project')
+    # Update layout
+    fig.update_layout(barmode='group', title_text='Test Suites by Project')
+
+    # Save the figure as a PNG image
+    if not os.path.exists('results'):
+        os.mkdir('results')
+    pio.write_image(fig, f'results/{save_filename}.png')
+
+    # Export the figure to a JSON file
+    fig.write_json(f'results/{save_filename}.json')
+
+# Test the function
+sample_data = 'project_name,test_suite_count\nAI,1\nProject Moon Base,1'
+
+# Convert the string data to a pandas DataFrame
+sample_data = pd.read_csv(pd.compat.StringIO(sample_data))
+
+# Call the function
+plot_graph(sample_data, 'test_suites_by_project')

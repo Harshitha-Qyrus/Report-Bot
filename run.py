@@ -13,26 +13,25 @@ import uuid
 import tqdm
 
 
+
 def classify_action(user_description):
     """
     Classifies the user_description to a function
     """
     classify_action = ClassifyAction()
     function_name, function_args =  classify_action(user_desc=user_description)
-    print("returning in run.py fun_name,func_args:\n",function_name,function_args)
+    # print("returning in run.py fun_name,func_args:\n",function_name,function_args)
 
     if function_name and function_args:
-        print("its done")
         return function_name, function_args
     
     else:
         if function_name:
-            print("Its not done")
             return function_name, {"user_description": user_description}
         return None, None
 
-def answerQuestion(user_description: str):
-    queried_data_str = __get_data__(user_description=user_description)
+def answerQuestion(user_description: str,selected_team:str):
+    queried_data_str = __get_data__(user_description=user_description,selected_team=selected_team)
     # print("\033[43m Raw answer:\033[0m",queried_data_str)
     formatted_answer = __format_answer__(question = user_description, answer = queried_data_str)
     print("\033[43m Formatted Answer:\033[0m",formatted_answer)
@@ -47,8 +46,8 @@ def __format_answer__(question, answer):
     else:
         return None
 
-def numberedcard(user_description:str):
-    queried_data_str = __get_data__(user_description=user_description)
+def numberedcard(user_description:str,selected_team:str):
+    queried_data_str = __get_data__(user_description=user_description,selected_team=selected_team)
     print("\033[43m Raw answer:\033[0m",queried_data_str)
     final_answer=_format_numberd_card(question = user_description, answer = queried_data_str)
     # print("\033[43m Formatted Answer:\033[0m",formatted_answer)
@@ -57,16 +56,15 @@ def numberedcard(user_description:str):
 def _format_numberd_card(question, answer):
     abstract_answers=NUMBER_RESPONSE()
     get_numbers=abstract_answers(question=question, answer=answer)
-    print("NEW MEEEEE:",get_numbers)
     extracted_number = get_numbers['formatted_answer']
     if extracted_number:
         return extracted_number
     else:
         return None
     
-def generateGraph(user_description: str):
-    print("am in asusualllll")
-    queried_data_str = __get_data__(user_description=user_description)
+def generateGraph(user_description: str,selected_team:str):
+    print("Generating Graph......")
+    queried_data_str = __get_data__(user_description=user_description,selected_team=selected_team)
     graph_filename = __generate_graphs_and_insights__(user_description=user_description, queried_data_str=queried_data_str)
     print("Graph generated in ", graph_filename)
     return graph_filename
@@ -110,18 +108,16 @@ def __run_code__(graph_code, df_from_str, attempt=0):
         return None
     
 
-def __get_data__(user_description):
+def __get_data__(user_description,selected_team):
     sql_converter = SQL_CONVERTER()
-    print("\033[42m AFTER GOING INTO SQL CONVERTER IN RUN.PY: \033[0m",sql_converter)
-    schema_generator = DB_SCHEMA_GENERATOR()
-    print("\033[42m AFTER GOING INTO SCHEMA GENERATOR IN RUN,PY: \033[0m",schema_generator)
+    schema_generator = DB_SCHEMA_GENERATOR(selected_team=selected_team)
     
-    db_schema = schema_generator()
-    args = sql_converter(user_description, db_schema)
+    db_schema,project_uuid,suite_uuid = schema_generator()
+    args = sql_converter(user_description,db_schema,project_uuid,suite_uuid)
     query = args.get('mysql_command')
 
     #TODO LINT SQL
-    print("\033[32m QUERYs predicted is \033[0m", query)
+    print("\033[32m QUERY predicted is \033[0m", query)
 
     # if query and lint_sql_command(query):
     return __execute_query__(query, db_schema)
@@ -131,11 +127,12 @@ def __execute_query__(query, db_schema):
     if query:
         try:
             result = mysql_adapter.execute_query(query)
+            print("\033[32m RESULT IS \033[0;32m ", result)
         except Exception as e:
             correct_query = CorrectQuery()
             args = correct_query(query, str(e), db_schema)
             query = args.get('mysql_command')
-            print("\033[32m QUERY predicted is \033[0;32m ", query)
+            # print("\033[32m QUERY predicted is \033[0;32m ", query)
             return __execute_query__(query, db_schema)
 
         return result.to_csv(index=False)
@@ -143,7 +140,7 @@ def __execute_query__(query, db_schema):
         return None
 
 
-def generateReport(user_description: str):
+def generateReport(user_description: str,selected_team:str):
     """
     1. gets the schema
     2. analyzes schema and user description and comes up with a list of graphs and content that can be on the report
@@ -151,7 +148,7 @@ def generateReport(user_description: str):
     4. Generates an HTML out of it
     """
     #Get schema
-    schema_generator = DB_SCHEMA_GENERATOR()
+    schema_generator = DB_SCHEMA_GENERATOR(selected_team=selected_team)
     db_schema = schema_generator()
 
     #analyze schema and generate ideas
@@ -161,24 +158,6 @@ def generateReport(user_description: str):
     
     insight_ideas =__generate_insight_ideas__(db_schema=db_schema, user_description=user_description
     )
-    print("Graphs to be generated for the graph are ", graph_ideas)
-    print("\033[47m Insights to be generated for the graph are \033[0m", insight_ideas)
-
-    #for each graph_idea, generate data and graph code and run it
-    # graphs = []
-    # for idea in tqdm.tqdm(graph_ideas + insight_ideas):
-    #     if "graph_description" in idea:
-    #         graph_description = idea.get("graph_description")
-    #         graph_details = idea.get("graph_details")
-    #         graph_reason = idea.get("graph_reason")
-    #         graph_filename = generateGraph(user_description=f"Generate graph for following details. graph_description: {graph_description}, graph_details: {graph_details}")
-    #         idea['graph_filename'] = graph_filename
-    #         graphs.append(idea)
-    #     elif "questions" in idea:
-    #         name_of_question = idea.get("questions")
-    #         details_on_question = idea.get("detail")
-    #         requesting_call = answerQuestion(user_description=f"Generate a solution for the following details: Question:{name_of_question}, details:{details_on_question}")
-    # return graphs
     
     graphs = []
     response=[]
@@ -186,7 +165,7 @@ def generateReport(user_description: str):
     for question in tqdm.tqdm(insight_ideas):
         name_of_question=question.get("questions")
         details_on_question=question.get("detail")
-        requesting_call=numberedcard(user_description=f"Generate an solution for following details: Question:{name_of_question},details:{details_on_question}")
+        requesting_call=numberedcard(user_description=f"Generate an solution for following details: Question:{name_of_question},details:{details_on_question}",selected_team=selected_team)
         questions_list.append(name_of_question)
         response.append(requesting_call)
     print("\033[33mALL QUESTIONS:\033[0m")
@@ -199,7 +178,7 @@ def generateReport(user_description: str):
         graph_details = graph_idea.get("graph_details")
         graph_reason = graph_idea.get("graph_reason")
 
-        graph_filename = generateGraph(user_description=f"Generate graph for following details. graph_description: {graph_description}, graph_details: {graph_details}")
+        graph_filename = generateGraph(user_description=f"Generate graph for following details. graph_description: {graph_description}, graph_details: {graph_details}",selected_team=selected_team)
         graph_idea['graph_filename'] = graph_filename
 
         graphs.append(graph_idea)
@@ -216,14 +195,9 @@ def __generate_graph_ideas__(db_schema, user_description):
 
 def __generate_insight_ideas__(db_schema,user_description):
     """gets the db_schema and user_description and gives it to gpt, and ask it to generate the list of insight description and insight content that can be generated to create the report"""
-    print("\033[47m I am inside def generate insight ideas \033[0m")
     generate_report_lists=GenerateReportList()
     args = generate_report_lists(db_schema=db_schema, user_description=user_description)
     questions_list=args.get("insight")
     return questions_list
-    print("\033[45m showing my first func:\033[0m",args)
 
-if __name__ == "__main__":
-    user_description = "How many executions are there?"
-    __get_data__(user_description)
 
