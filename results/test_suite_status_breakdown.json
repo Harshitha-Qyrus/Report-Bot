@@ -1,1 +1,0 @@
-{"data": [{"alignmentgroup": "True", "hovertemplate": "test_suite_name=%{x}<br>test_suite_status=%{y}<extra></extra>", "legendgroup": "", "marker": {"color": "#636efa", "pattern": {"shape": ""}}, "name": "", "offsetgroup": "", "orientation": "v", "showlegend": false, "textposition": "auto", "x": 

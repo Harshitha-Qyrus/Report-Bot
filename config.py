@@ -4,10 +4,11 @@ from dotenv import load_dotenv
 load_dotenv()
 
 class OPENAI_CONFIG:
-    AZURE_ENDPOINT = os.environ.get("AZURE_OPENAI_ENDPOINT")
-    AZURE_OPENAI_API_KEY = os.environ.get("AZURE_OPENAI_KEY")
+    AZURE_ENDPOINT = os.environ.get("AZURE_OPENAI_ENDPOINT","https://qyrus-ai-east-us-2.openai.azure.com/")
+    AZURE_OPENAI_API_KEY = os.environ.get("AZURE_OPENAI_KEY", "46861c43ff474f68b24dcde19c9314e5")
     AZURE_API_VERSION=os.environ.get("OPENAI_API_VERSION", "2023-07-01-preview")
     API_TYPE = os.environ.get("OPENAI_API_TYPE", "azure")
+    OPENAI_RETRIES=int(os.environ.get("OPENAI_RETRIES",4))
 
     MODELS = {
         "text-embedding-ada-002": "textada002",

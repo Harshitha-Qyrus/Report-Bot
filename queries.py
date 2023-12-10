@@ -30,6 +30,7 @@ class Queries:
     find_testsuite_id_query="""SELECT * FROM {database_name}.test_suite WHERE project_uuid IN ({project_ids});""" 
     
     
+    
     #Query to get specified columns in specified tables
     select_all_from_table = """SELECT * FROM {database_name}.{table_name};"""
     # Query to get all Table names in a database

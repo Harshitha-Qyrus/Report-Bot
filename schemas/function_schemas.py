@@ -11,7 +11,7 @@ class GenerateGraphAndInsights(BaseModel):
     user_description: str
 
 class FORMAT_ANSWER(BaseModel):
-    formatted_answer: str
+    formatted_answers: str
     
 class FORMAT_NUMBERED_CARD(BaseModel):
     abstract_answer:str
