@@ -8,7 +8,7 @@ import sqlfluff
 class MYSQL_ADAPTER:
     
     def execute_query(self, query):
-        print("\033[41m QUERYYYYYYY \033[0m",query)
+        # print("\033[41m QUERYYYYYYY \033[0m",query)
         with SSHTunnelForwarder((DB_CONFIG.SSH_HOST, 22), ssh_pkey=DB_CONFIG.SSH_PKEY_FILE, ssh_username=DB_CONFIG.SSH_UNAME,
             remote_bind_address=(DB_CONFIG.DB_HOST, 3306))  as tunnel:
 

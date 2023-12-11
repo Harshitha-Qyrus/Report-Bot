@@ -17,7 +17,7 @@ class GenerateReportLayout:
             "content": GENERATE_REPORT_LAYOUT_PROMPT.user_prompt.format(user_description=user_description, db_schema=db_schema)
         }]
         
-        print("\033[31m Message in Generate report layout \033[0m", messages)
+        # print("\033[31m Message in Generate report layout \033[0m", messages)
 
         functions = [{
             "name": "showReport",
@@ -27,8 +27,8 @@ class GenerateReportLayout:
             "parameters": GenerateReportLayoutSchema.schema()
         }]
         
-        print("\033[31m functions in Generate report layout \033[0m", functions)
+        # print("\033[31m functions in Generate report layout \033[0m", functions)
 
         _, args = self.function_call(messages=messages, model_name="gpt-4-32k", functions=functions)
-        print("\033[31m ARGSSSSS IN REPORT \033[0m", args)
+        # print("\033[31m ARGSSSSS IN REPORT \033[0m", args)
         return args

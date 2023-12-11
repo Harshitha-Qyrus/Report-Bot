@@ -13,13 +13,25 @@ class GenerateGraphs:
         self.async_function = AsyncCompletion()
 
     async def __call__(self, user_description, sample_data):
+        
+        # if(sample_data):
+        #     messages = [[{
+        #         "role": "system",
+        #         "content": GENERATE_GRAPH_PROMPT.system_prompt
+        #     }, {
+        #         "role": "user",
+        #         "content": GENERATE_GRAPH_PROMPT.user_prompt.format(user_description=user_message, sample_data=df_data)
+        #     }] for user_message,df_data in zip(user_description,sample_data) ]
+        # else:
         messages = [[{
             "role": "system",
             "content": GENERATE_GRAPH_PROMPT.system_prompt
-        }, {
+            }, {
             "role": "user",
             "content": GENERATE_GRAPH_PROMPT.user_prompt.format(user_description=user_message, sample_data=df_data)
-        }] for user_message,df_data in zip(user_description,sample_data) ]
+            }] for user_message,df_data in zip(user_description,sample_data) ]
+            
+        print("Total messages:",messages)
 
         functions = [{
             "name": "generateGraph",
@@ -43,7 +55,7 @@ class GenerateGraphs:
                 function_call={"name": functions[0].get("name")})
             for msg in messages
         ])
-        
+                
         graph_codes = []
         for r in results:
             function_call_code = r['choices'][0]['message']['function_call']['arguments']
@@ -51,6 +63,7 @@ class GenerateGraphs:
             if match:
                 graph_code = match.group(1)
                 graph_codes.append(graph_code)
+                
         print("Total code for Graphs:",graph_codes)
         
         

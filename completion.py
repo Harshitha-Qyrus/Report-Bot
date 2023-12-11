@@ -102,7 +102,7 @@ class FunctionCall:
                 "temperature": 0.2
             }
 
-            print("\033[95m messages in function call:\033[0m", messages)
+            # print("\033[95m messages in function call:\033[0m", messages)
 
             if OPENAI_CONFIG.API_TYPE == "azure":
                 ags["engine"] = OPENAI_CONFIG.MODELS[model_name]
@@ -234,7 +234,7 @@ class AsyncCompletion:
                 json=ags,
                 headers={"api-key": OPENAI_CONFIG.AZURE_OPENAI_API_KEY})
             # response.raise_for_status()
-            print(response.text)
+            # print(response.text)
             # return response.json()
             return response.json()
 

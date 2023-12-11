@@ -58,7 +58,7 @@ async def numberedcard(user_description: List[str], db_schema, team_id):
         user_description=user_description,
         db_schema=db_schema,
         team_id=team_id)
-    print("\033[43m Raw answer:\033[0m", queried_data_str)
+    # print("\033[43m Raw answer:\033[0m", queried_data_str)
     final_answer = _format_numberd_card(question=user_description,
                                         answer=queried_data_str)
     # print("\033[43m Formatted Answer:\033[0m",final_answer)
@@ -79,10 +79,9 @@ async def generateGraph(user_description: str, selected_team: str):
     print("Generating Graph......")
     queried_data_str = await __get_data__(user_description=user_description,
                                           selected_team=selected_team)
-    print("Checking quried data", queried_data_str)
     graph_filename = await __generate_graphs_and_insights__(
         user_description=user_description, queried_data_str=queried_data_str)
-    print("Graph generated in ", graph_filename)
+    # print("Graph generated in ", graph_filename)
     return graph_filename
 
 
@@ -93,69 +92,48 @@ async def generateGraph_Report(user_description:list[str],db_schema,team_id):
     print("Checking quried data", queried_data_list)
     graph_filename =await __generate_graphs_and_insights_for_report(
         user_description=user_description, queried_data_list=queried_data_list)
-    print("Graph generated in ", graph_filename)
+    # print("Graph generated in ", graph_filename)
     return graph_filename
-
-
-# async def generateGraph_Report(user_description: str, db_schema, team_id):
-#     print("Generating Graph for Reports......")
-#     queried_data_str = await __get_data_without_db(
-#         user_description=user_description,
-#         db_schema=db_schema,
-#         team_id=team_id)
-#     print("Checking quried data", queried_data_str)
-#     graph_filename = await __generate_graphs_and_insights__(
-#         user_description=user_description, queried_data_str=queried_data_str)
-#     print("Graph generated in ", graph_filename)
-#     return graph_filename
 
 
 async def __generate_graphs_and_insights_for_report(user_description,
                                                     queried_data_list):
     generate_graphs = GenerateGraphs()
-    # csv_buffer = StringIO(f'{queried_data_list}')
-    # csv_buffer = StringIO(queried_data_str)
-    # df_from_str = pd.read_csv(csv_buffer)
     data_frames = [pd.read_csv(StringIO(data)) for data in queried_data_list]
     selected_rows_data_frames = [df.head(2) for df in data_frames]
-    graph_uuid = str(uuid.uuid4())
-    # print("df_from_str:", df_from_str)
-    print("number:", graph_uuid)
-    # df_from_str.to_csv(f"{graph_uuid}.csv", index=False)
-    # print("AFTER DF_STR:",df_from_str)
-    print("\033[93m USER DESC:\033[0m",user_description)
-    print("\033[93m SAMPLE DATA:\033[0m",selected_rows_data_frames)
     graph_args = await generate_graphs(
         user_description=user_description,
         sample_data=selected_rows_data_frames)
 
     print("Graph_args:", graph_args)
+    length=len(graph_args)
+    print("LENGTH IS:",length)
     filenames = []
+    counts=0
     for single_graph, single_df_from_str in zip(graph_args, data_frames):
-        # single_df = pd.read_csv(StringIO(single_df_from_str))
-        print("DataFrame for the current iteration:")
-        print(single_df_from_str)
+        graph_uuids = str(uuid.uuid4())
         filename = __run_code__report(graph_code=(f"""{single_graph}"""),
-                                      filename=graph_uuid,
+                                      filename=graph_uuids,
                                       df_from_str=single_df_from_str)
         print("Image saved in ", filename)
+        counts+=counts
         filenames.append(filename)
+    
+    # if (length == counts):
+    #     print("Filenames are:",filenames)
+    #     counts=0
     return filenames
 
 
 def __run_code__report(graph_code, filename, df_from_str, attempt=0):
-    print("Printing if graph_code:", graph_code)
-    print(type(graph_code))
-    print("\033[94m Data frame inside run_code: \033[0m", df_from_str)
-    print(type(df_from_str))
     if graph_code:
         global_vars = globals()
         try:
-            print("INSIDE TRY ")
+            print("Trying to execute... ")
             exec(graph_code, global_vars)
             # filename = str(uuid.uuid4())
             plot_graph(data=df_from_str, save_filename=filename)
-            print("AFTER FILENAME:", filename)
+            print("Executed")
             return filename
         except Exception as e:
             if attempt > 5:
@@ -165,8 +143,6 @@ def __run_code__report(graph_code, filename, df_from_str, attempt=0):
             graph_args = correct_code(graph_code, str(e))
             # print("\033[94m Corrected code in graph report\033[0m", graph_args)
             graph_code_str = graph_args.get("graph_code")
-            # print("\033[94m Corrected code in graph args \033[0m",
-            #       graph_code_str)
             print("CORRECTING CODE")
             return __run_code__report(graph_code=graph_code_str,
                                       filename=filename,
@@ -181,17 +157,14 @@ async def __generate_graphs_and_insights__(user_description, queried_data_str):
     generate_graphs = GenerateGraphs()
     csv_buffer = StringIO(queried_data_str)
     df_from_str = pd.read_csv(csv_buffer)
-    print("Printing sample data before", df_from_str)
+    data_frames = [pd.read_csv(StringIO(queried_data_str))]
+    selected_rows_data_frames = [data_frames[:2]]
     df_from_str.to_csv("complete_data.csv", index=False)
-    # graph_uuid=str(uuid.uuid4())
-    # df_from_str.to_csv(f"{graph_uuid}.csv", index=False)
-    print("Printing sample data", df_from_str)
     graph_args = await generate_graphs(
         user_description=user_description,
-        sample_data=df_from_str[:2].to_csv(index=False))
+        sample_data=selected_rows_data_frames)
     # graph_code = graph_args.get("graph_code")
 
-    print("Graph_args:", graph_args)
     graph_code = '\n'.join(graph_args)
     filename = __run_code__(graph_code=graph_code, df_from_str=df_from_str)
     print("Image saved in ", filename)
@@ -199,20 +172,14 @@ async def __generate_graphs_and_insights__(user_description, queried_data_str):
 
 
 def __run_code__(graph_code: str, df_from_str, attempt=0):
-    print("Printing if graph_code:", graph_code)
-    print(type(graph_code))
-    print("Data frame:", df_from_str)
-    print(type(df_from_str))
     if graph_code:
         global_vars = globals()
         try:
             exec(graph_code, global_vars)
 
             filename = str(uuid.uuid4())
-            print("arguments ", type(df_from_str))
-            print("Before FILENAME:", filename)
             plot_graph(data=df_from_str, save_filename=filename)
-            print("AFTER FILENAME:", filename)
+            print("EXECUTED:", filename)
             return filename
         except Exception as e:
             if attempt > 5:
@@ -238,12 +205,10 @@ async def __get_data__(user_description: str, selected_team: str):
 
     db_schema, team_id = schema_generator()
     args = await sql_converter(user_description, db_schema, team_id)
-    print("\033[32m QUERY predicted is \033[0m", args)
+    # print("\033[32m QUERY predicted is \033[0m", args)
     # results = list(map(lambda arg: __execute_query__(arg, db_schema), args))
     results = __execute_query__(args, db_schema)
-    print(results)
     return results
-    # query = args.get('mysql_command')
 
     #TODO LINT SQL
     # print("\033[32m QUERY predicted is \033[0m", query)
@@ -253,21 +218,9 @@ async def __get_data_without_db(user_description, db_schema,team_id):
     sql_converter = SQL_CONVERTER()
     args = await sql_converter(user_description, db_schema, team_id
                                )
-    print("\033[32m QUERY predicted is \033[0m",args)
+    # print("\033[32m QUERY predicted is \033[0m",args)
     results =list(__execute_query_for_list(args, db_schema))
-    print(results)
-    print("Type of results :",type(results))
     return results
-
-
-# async def __get_data_without_db(user_description, db_schema, team_id):
-#     sql_converter = SQL_CONVERTER()
-#     args = await sql_converter(user_description, db_schema, team_id)
-#     print("\033[32m QUERY predicted is \033[0m", args)
-#     results = __execute_query__(args, db_schema)
-#     print(results)
-#     print("Type of results :", type(results))
-#     return results
 
 
 def __execute_query_for_list(query_list, db_schema):
@@ -276,7 +229,7 @@ def __execute_query_for_list(query_list, db_schema):
         if query:
             try:
                 result = mysql_adapter.execute_query(query)
-                print("\033[32m RESULT IS \033[0;32m ", result)
+                # print("\033[32m RESULT IS \033[0;32m ", result)
             except Exception as e:
                 correct_query = CorrectQuery()
                 args = correct_query(query, str(e), db_schema)
@@ -294,7 +247,7 @@ def __execute_query__(query, db_schema):
     if query:
         try:
             result = mysql_adapter.execute_query(query)
-            print("\033[32m RESULT IS \033[0;32m ", result)
+            # print("\033[32m RESULT IS \033[0;32m ", result)
         except Exception as e:
             correct_query = CorrectQuery()
             args = correct_query(query, str(e), db_schema)
@@ -321,11 +274,11 @@ async def generateReport(user_description: str, selected_team: str):
     #analyze schema and generate ideas
     graph_ideas = __generate_graph_ideas__(db_schema=db_schema,
                                            user_description=user_description)
-    print("Printing graph ideas", graph_ideas)
+    # print("Printing graph ideas", graph_ideas)
+    
     # insight_ideas
-
-    # insight_ideas = __generate_insight_ideas__(
-    #     db_schema=db_schema, user_description=user_description)
+    insight_ideas = __generate_insight_ideas__(
+        db_schema=db_schema, user_description=user_description)
 
     graphs = []
     response = []
@@ -333,31 +286,23 @@ async def generateReport(user_description: str, selected_team: str):
     only_question = []
     counter = 1
 
-    # for question in tqdm.tqdm(insight_ideas):
-    #     name_of_question = question.get("questions")
-    #     details_on_question = question.get("detail")
-    #     only_question.append(f"{counter}.{name_of_question}")
-    #     counter += 1
-    #     question_str = f" [Generate a solution for the following details: Question:{name_of_question}, details:{details_on_question}]"
-    #     questions_list.append(question_str)
+    for question in tqdm.tqdm(insight_ideas):
+        name_of_question = question.get("questions")
+        details_on_question = question.get("detail")
+        only_question.append(f"{counter}.{name_of_question}")
+        counter += 1
+        question_str = f" [Generate a solution for the following details: Question:{name_of_question}, details:{details_on_question}]"
+        questions_list.append(question_str)
     # print("All Questions in One List:", questions_list)
-    # responses = await numberedcard(user_description=questions_list,
-    #                                db_schema=db_schema,team_id=team_id)
-    # for question in only_question:
-    #     print("ALL QUESTIONS:",question)
-    # print("This is response",responses)
+    responses = await numberedcard(user_description=questions_list,
+                                   db_schema=db_schema,team_id=team_id)
+    print("\033[93m QUESTIONS::\033[0m")
+    for question in only_question:
+        print(question)
+    print("\033[93m This is response:\033[0m",responses)
 
-    # for question in tqdm.tqdm(insight_ideas):
-    #     name_of_question=question.get("questions")
-    #     details_on_question=question.get("detail")
-    #     requesting_call=numberedcard(user_description=f"Generate an solution for following details: Question:{name_of_question},details:{details_on_question}",selected_team=selected_team)
-    #     questions_list.append(name_of_question)
-    #     response.append(requesting_call)
-    # print("\033[33mALL QUESTIONS:\033[0m")
-    # for question in questions_list:
-    #     print(question)
-    # print("\033 Final RESPONSE OF NUMBERED CARD ARE\033[0m",response)
     graph_questions_list=[]
+    result_list=[]
     for graph_idea in tqdm.tqdm(graph_ideas):
         graph_description = graph_idea.get("graph_description")
         graph_details = graph_idea.get("graph_details")
@@ -365,30 +310,19 @@ async def generateReport(user_description: str, selected_team: str):
         graph_questions_list.append(graph_question_str)
     graph_filenames=await generateGraph_Report(user_description=graph_questions_list,
                                    db_schema=db_schema,team_id=team_id)
-    for graph_idea in (graph_ideas):
-        graph_idea['graph_filename'] = graph_filenames
-        graphs.append(graph_idea)
-    return graphs
-
-    # graph_filename =generateGraph(
-    #     user_description=
-    #     f"Generate graph for following details. graph_description: {graph_description}, graph_details: {graph_details}",
-    #     selected_team=selected_team)
-    # graph_idea['graph_filename'] = graph_filename
-
-    # graphs.append(graph_idea)
-
-    # graph_filenames = [
-    #     await generateGraph_Report(
-    #         user_description=
-    #         f"Generate graph for following details. graph_description:: Question:{graph_idea.get('graph_description')}, details:{graph_idea.get('graph_details')}",
-    #         db_schema=db_schema,
-    #         team_id=team_id) for graph_idea in graph_ideas
-    # ]
-    # for graph_idea, graph_filename in zip(graph_ideas, graph_filenames):
-    #     graph_idea['graph_filename'] = graph_filename
-    #     graphs.append(graph_idea)
-    # return graphs
+    print("Graph file names at the end:",graph_filenames)
+    
+    for idea, filename in zip(graph_ideas, graph_filenames):
+        new_dict = {
+            'graph_description': idea['graph_description'],
+            'graph_details': idea['graph_details'],
+            'graph_filename': filename
+            }
+        result_list.append(new_dict)
+        
+    # for result in result_list:
+    #     print(result)   
+    return result_list
 
 
 def __generate_graph_ideas__(db_schema, user_description):

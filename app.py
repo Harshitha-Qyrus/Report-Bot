@@ -19,7 +19,7 @@ async def main():
         print("Selected Service: ", selected_service)
         team_id=mysql_adapter.execute_query(Queries.teams_id_schema.format(user_email="vatsals@quinnox.com",team_name=team_dropdown.value))
         team_id=team_id['uuid'].to_list()
-        print("Team uuid:",team_id)
+        # print("Team uuid:",team_id)
         
         
         function_name, function_args = classify_action(input("What do you want to know?"))
@@ -27,9 +27,9 @@ async def main():
         print("Func args ", function_args)
 
         function_name = function_name.split("functions.")[-1] if 'functions.' in function_name else function_name
-        print(" In app.py func_name after splitting",function_name)
+        # print(" In app.py func_name after splitting",function_name)
         fun_obj = getattr(run, function_name)
-        print("function_obj",fun_obj)
+        # print("function_obj",fun_obj)
         response = await fun_obj(function_args,selected_team)
 
         if function_name == "generateGraph" and response:

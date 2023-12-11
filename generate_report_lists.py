@@ -28,5 +28,5 @@ class GenerateReportList:
         
 
         _, args = self.function_call(messages=messages, model_name="gpt-4-32k", functions=functions)
-        print("\033[47m ARGSSSSS IN REPORT \033[0m", args)
+        # print("\033[47m ARGSSSSS IN REPORT \033[0m", args)
         return args

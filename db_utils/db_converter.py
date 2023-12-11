@@ -15,7 +15,6 @@ class DB_SCHEMA_GENERATOR:
     def __init__(self, selected_team):
         self.mysql_adapter = MYSQL_ADAPTER()
         self.selected_team = selected_team
-        print("PRINTING SELF.SELECTED TEAM", self.selected_team)
 
     def __call__(self,
                  database_name="webautomation",
@@ -80,8 +79,7 @@ class DB_SCHEMA_GENERATOR:
         # table_schema = self.mysql_adapter.execute_query(Queries.normal_user_schema.format(database_name="usermgmt",user_email=user_email))
         # table_schemas += "TABLE NAME : Normal_user " + table_schema[['Field', 'Type']].to_csv(index=False) + "\n"
 
-        # table_schema= self.mysql_adapter.execute_query(Queries.team_schema.format(user_email=user_email))
-        # table_schema+="User teamsssss"+table_schema.to_csv(index=False)+"\n"
+        
         user_result = self.mysql_adapter.execute_query(
             Queries.teams_id_schema.format(user_email="vatsals@quinnox.com",
                                            team_name=self.selected_team))
@@ -89,31 +87,24 @@ class DB_SCHEMA_GENERATOR:
         print(team_id)
         with open("teamid_schema.txt", "w") as fb:
             user_result[['uuid']].to_csv(fb, index=False)
-        # sql_gen = self.mysql_adapter.execute_query(
-        #     Queries.find_teamid_query.format(
-        #         database_name=database_name,
-        #         team_ids=', '.join(["'{}'".format(tid)
-        #                             for tid in team_id])))
-        # # print("MY DREAMMMM:",sql_gen)
-        # projectid_array = sql_gen['uuid'].tolist()
-        # with open("projectid_list.txt", "w") as ab:
-        #     sql_gen[['uuid']].to_csv(ab, index=False)
-        # suite_query = self.mysql_adapter.execute_query(
-        #     Queries.find_testsuite_id_query.format(
-        #         database_name=database_name,
-        #         project_ids=', '.join(
-        #             ["'{}'".format(pid) for pid in projectid_array])))
-        # test_Suite_ids = suite_query['uuid'].tolist()
-        # with open("suite_id_list.txt", "w") as ab:
-        #     suite_query[['uuid']].to_csv(ab, index=False)
+       
 
         db_schema = "Relations: \n"
         db_relations = self.mysql_adapter.execute_query(
             Queries.schema1.format(database_name=database_name))
         db_schema += db_relations.to_csv(index=False)
+        
+        # When saved localy to decrease the cell time,you can access by uncommenting this and commenting the above tables then add return file_content below:
+        
+        # file_path = 'D:\\Report-Bot\\Report-Bot\\tables_schema.txt'
+
+        # with open(file_path, 'r') as file:
+        #     file_content = file.read()
+
+        # print(file_content)
 
         table_schemas += db_schema
-        # print("\033[45m tABLE schemaaa last \033[0m",table_schemas)
+
         with open("tables_schema.txt", "w") as fb:
             fb.write(table_schemas)
         return table_schemas, team_id
@@ -158,7 +149,7 @@ class SQL_CONVERTER:
             self.__get_user_prompt__(user_message, db_schema, team_id
                                      )
         }] for user_message in user_description]
-        print("messages", messages)
+        # print("messages", messages)
 
         # print("\033[46m Messages in SQL CONVERTER \033[0m",messages)
         results = await asyncio.gather(*[
@@ -169,13 +160,13 @@ class SQL_CONVERTER:
                 function_call={"name": functions[0].get("name")})
             for msg in messages
         ])
-        print("Before :", results)
+        # print("Before :", results)
         results = [
             json.loads(
                 r.get("choices")[0].get("message").get("function_call").get(
                     "arguments")).get("mysql_command") for r in results
         ]
-        print("sql_converter_response", results)
+        # print("sql_converter_response", results)
         return results
 
         # _, args = self.function_call(messages=messages, model_name="gpt-4-32k", functions=functio
